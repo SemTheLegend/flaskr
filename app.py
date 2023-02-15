@@ -72,6 +72,13 @@ class NamerForm(FlaskForm):
     submit = SubmitField("Submit")
 
 
+# Create a Password Form Class
+class PasswordForm(FlaskForm):
+    email = StringField("What's your email", validators=[DataRequired()])
+    passwd = PasswordField("What's your password", validators=[DataRequired()])
+    submit = SubmitField("Submit")
+
+
 # Create a route decorator
 @app.route('/')
 def index():
@@ -137,18 +144,32 @@ def add_user():
     return render_template("add_user.html", form=form, name=name, our_users=our_users)
 
 
-# Create name page
-@app.route('/name', methods=['GET', 'POST'])
-def name():
-    name = None
-    form = NamerForm()
+# Create Password Test Page
+@app.route('/test_pw', methods=['GET', 'POST'])
+def test_pw():
+    email= None
+    password = None
+    pw_to_check = None
+    passed = None
+    form = PasswordForm()
     # Validate Form
     if form.validate_on_submit():
-        name = form.name.data
-        form.name.data = ""
+        email = form.email.data
+        password = form.passwd.data
+        
+        # Retrieve User by email from the Database
+        pw_to_check = Users.query.filter_by(email=email).first()
+        
+        # Check Hashed Password
+        passed = check_password_hash(pw_to_check.passwd, password)
+        
+        # Clear the form
+        form.email.data = ''
+        form.passwd.data = ''
+        
         flash("Form Submitted Successfully!")
 
-    return render_template('name.html', name=name, form=form)
+    return render_template('test_pw.html', email=email, password=password, pw_to_check=pw_to_check, passed=passed, form=form)
 
 
 # Update Databse Record
