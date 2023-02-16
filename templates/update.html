@@ -11,19 +11,8 @@
 
 {% endfor %}
 
-{% if name %}
+{% if id == current_user.id %}
 
-    <h1>Update User</h1>
-
-        <table class="table table-hover table-bordered table-striped">
-            {% for user in our_users %}
-                <tr>    
-                <td>{{ user.id }} : {{ user.name }} - {{ user.email}} {{ user.fav_color }} </td>
-                </tr>
-            {% endfor %}
-    </table>
-
-{% else %}
     <h1>Update User... </h1>
     <br/>
     <div class="shadow p-3 mb-5 bg-body rounded">
@@ -37,7 +26,19 @@
             {{ form.name(
                 class="form-control", value=name_to_update.name
             ) }}
+            
             <br/>
+
+            {{ form.username.label(
+                class="form-label"
+            ) }}
+
+            {{ form.username(
+                class="form-control", value=name_to_update.username
+            ) }}
+
+            <br/>
+            
             {{ form.email.label(
                 class="form-label"
             ) }}
@@ -45,7 +46,9 @@
             {{ form.email(
                 class="form-control", value=name_to_update.email
             ) }}
+            
             <br/>
+            
             {{ form.fav_color.label(
                 class="form-label"
             ) }}
@@ -57,15 +60,24 @@
         <br/>
 
         {{ form.submit(
-            class="btn btn-secondary"
+            class="btn btn-secondary btn-sm"
         ) }}
-
-        <a href="{{ url_for('delete', id=id) }}" class="btn btn-danger">Delete</a>
+        
+        <a href="{{ url_for('delete', id=id) }}" class="btn btn-danger btn-sm">Delete</a>
 
     </form>
     </div>
     <br>
 
-{% endif%}
+{% else %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        You can't edit this page!
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <h2>Access Denied!</h2>
+    <p>Sorry, you cannot access this user profile</p>
+
+{% endif %}
 
 {% endblock %}

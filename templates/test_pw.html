@@ -11,6 +11,8 @@
 
 {% endfor %}
 
+{% if current_user.is_authenticated %}
+
 {% if email %}
 
     <h1>Hello {{ email }}!!</h1>
@@ -56,5 +58,13 @@
     </form>
 
 {% endif%}
+
+{% else %}
+    <h2>Must Be Logged In</h2>
+    <p>Sorry, You must be logged in to access this page!</p>
+    <br/>
+    <a href="{{ url_for('login') }}">Login here</a>
+
+{% endif %}
 
 {% endblock %}

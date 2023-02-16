@@ -34,19 +34,27 @@
             {{ form.name.label(
                 class="form-label"
             ) }}
-            <br/>
+
             {{ form.name(
                 class="form-control"
             ) }}
-
-            {{ form.email.label(
+            <br/>
+            {{ form.username.label(
                 class="form-label"
             ) }}
 
+            {{ form.username(
+                class="form-control"
+            ) }}
+            <br/>
+            {{ form.email.label(
+                class="form-label"
+            ) }}
+            
             {{ form.email(
                 class="form-control"
             ) }}
-
+            <br/>
             {{ form.fav_color.label(
                 class="form-label"
             ) }}
@@ -54,7 +62,7 @@
             {{ form.fav_color(
                 class="form-control"
             ) }}
-
+            <br/>
             {{ form.passwd.label(
                 class="form-label"
             ) }}
@@ -62,7 +70,7 @@
             {{ form.passwd(
                 class="form-control"
             ) }}
-
+            <br/>
             {{ form.passwd2.label(
                 class="form-label"
             ) }}
@@ -83,7 +91,7 @@
         <table class="table table-hover table-bordered table-striped">
             {% for user in our_users %}
                 <tr>    
-                <td>{{ user.id }}<a href="{{ url_for('update', id=user.id) }}"> : {{ user.name }}</a> - {{ user.email}} - {{ user.fav_color }} - 
+                <td>{{ user.id }}<a href="{{ url_for('update', id=user.id) }}"> : {{ user.name }} </a> - {{ user.username }} - {{ user.email}} - {{ user.fav_color }} - 
                     PW: {{ user.passwd }} - <a href="{{ url_for('delete', id=user.id) }}">Delete</a> </td>
                 </tr>
             {% endfor %}
