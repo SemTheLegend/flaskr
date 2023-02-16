@@ -15,3 +15,6 @@ for db in my_cursor:
     
 my_cursor.close()
 my_db.close()
+
+
+# <!-- <a href="{{ url_for('delete_post', id=post.id) }}" class="btn btn-outline-danger btn-sm">Delete Post</a> -->
