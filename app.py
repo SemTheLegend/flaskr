@@ -156,7 +156,7 @@ def dashboard():
         name_to_update.name = request.form['name']
         name_to_update.email = request.form['email']
         name_to_update.fav_color = request.form['fav_color']
-        name_to_update.useranme = request.form['username']
+        name_to_update.username = request.form['username']
 
         try:
             db.session.commit()
