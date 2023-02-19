@@ -6,20 +6,22 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from datetime import datetime, date
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
+from flask_ckeditor import CKEditor
 
 # import forms from webforms
-from webforms import LoginForm, PasswordForm, UserForm, PostForm, NamerForm
+from webforms import LoginForm, PasswordForm, UserForm, PostForm, SearchForm
 
 
 # Create a Flask Instance
 app = Flask(__name__)
-
+# Add CKEditor
+ckeditor = CKEditor(app)
 # Add Database
 """Old SQLite DB"""
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 """New MySQL db"""
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://username:password@localhost/db_name'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqldb://root:Legend1240s26#@localhost/flask_blog_db'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqldb://root:Legend1240s26#@localhost/flask_blog_db'
 # Enable Tracking Modifications
 app.config['SQLACHEMY_TRCAK_MODIFICATIONS'] = True
 # Secret Key!
@@ -50,9 +52,10 @@ class Users(db.Model, UserMixin):
     fav_color = db.Column(db.String(40))
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
     passwd = db.Column(db.String(126), nullable=False)
-    
+
     # User Can Have Many Posts
     posts = db.relationship('Posts', backref='poster')
+
     @property
     def password(self):
         raise AttributeError("password is not readable")
@@ -77,11 +80,24 @@ class Posts(db.Model):
     # author = db.Column(db.String(255))
     date_posted = db.Column(db.DateTime, default=datetime.utcnow)
     slug = db.Column(db.String(255))
-    
+
     # ForeignKey To Link Users (refer to primary of the user)
     post_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
 
+# ADMIN Page
+@app.route('/admin')
+@login_required
+def admin():
+    id = current_user.id
+    
+    if id == 1:
+        return render_template('admin.html')
+    else:
+        flash("Sorry you must be the Admin to access this page")
+        return redirect(url_for('dashboard'))
+        
+        
 # Create a route decorator
 @app.route('/')
 @login_required
@@ -122,6 +138,30 @@ def page_not_found(e):
 @app.errorhandler(500)
 def page_not_found(e):
     return render_template('500.html'), 500
+
+
+# Pass Stuff To Navbar
+@app.context_processor
+def base():
+    form = SearchForm()
+    return dict(form=form)
+
+
+# Create Search Function
+@app.route('/search', methods=["POST"])
+def search():
+    form = SearchForm()
+    posts = Posts.query
+
+    if form.validate_on_submit():
+        # Get data from submitted form
+        post.searched = form.searched.data
+        
+        # Query the Database
+        posts = posts.filter(Posts.content.like('%' + post.searched + '%'))
+        posts = posts.order_by(Posts.title).all()
+
+        return render_template("search.html", form=form, searched=post.searched, posts=posts)
 
 
 # Create Login Page
@@ -341,7 +381,7 @@ def edit_post(id):
 
     if form.validate_on_submit():
         post.title = form.title.data
-        
+
         post.slug = form.slug.data
         post.content = form.content.data
 
@@ -354,7 +394,7 @@ def edit_post(id):
         return redirect(url_for('post', id=post.id))
 
     if current_user.id == post.post_id:
-        
+
         form.title.data = post.title
         form.slug.data = post.slug
         form.content.data = post.content
@@ -364,14 +404,14 @@ def edit_post(id):
         flash("You are not authorized to edit this post!!")
         posts = Posts.query.order_by(Posts.date_posted)
         return render_template('posts.html', posts=posts)
-        
+
 
 @app.route('/posts/delete/<int:id>')
 @login_required
 def delete_post(id):
     post_to_delete = Posts.query.get_or_404(id)
     id = current_user.id
-    
+
     if id == post_to_delete.poster.id:
         try:
             db.session.delete(post_to_delete)
@@ -403,4 +443,3 @@ def delete_post(id):
 if __name__ == '__main__':
     db.create_all()
     app.run(debug=True, port=50100, host='localhost')
-

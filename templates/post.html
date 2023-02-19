@@ -20,7 +20,7 @@
 <h3>Title: {{ post.title }}</h3> <br/>
 By: {{ post.poster.name }} <br/>
 {{ post.date_posted }}<br/><br/>
-{{ post.content }} <br/>
+{{ post.content|safe }} <br/>
 
 </div>
 
