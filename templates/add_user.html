@@ -1,104 +1,77 @@
-{% extends 'base.html' %}
+{% extends 'base.html' %} {% block content %} {% for message in
+get_flashed_messages() %}
 
-{% block content %}
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+  {{ message }}
+  <button
+    type="button"
+    class="btn-close"
+    data-bs-dismiss="alert"
+    aria-label="Close"
+  ></button>
+</div>
 
-{% for message in get_flashed_messages() %}
+{% endfor %} {% if name %}
 
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
+<h1>Added User!</h1>
 
-{% endfor %}
-
-{% if name %}
-
-    <h1>Added User!</h1>
-
-        <table class="table table-hover table-bordered table-striped">
-            {% for user in our_users %}
-                <tr>    
-                <td>{{ user.id }} <a href="{{ url_for('update', id=user.id) }}"> : {{ user.name }}</a> - {{ user.email}} - {{ user.fav_color }} - 
-                    <a href="{{ url_for('delete', id=user.id) }}">Delete</a></td>
-                </tr>
-            {% endfor %}
-    </table>
+<table class="table table-hover table-bordered table-striped">
+  {% for user in our_users %}
+  <tr>
+    <td>
+      {{ user.id }}
+      <a href="{{ url_for('update', id=user.id) }}"> : {{ user.name }}</a> - {{
+      user.email}} - {{ user.fav_color }} -
+      <a href="{{ url_for('delete', id=user.id) }}">Delete</a>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
 
 {% else %}
-    <h1>User List:</h1>
-    <br/>
-    <div class="shadow p-3 mb-5 bg-body rounded">
-        <form  method="POST">
-            {{ form.hidden_tag() }}
+<h1>User List:</h1>
+<br />
+<div class="shadow p-3 mb-5 bg-body rounded">
+  <form method="POST">
+    {{ form.hidden_tag() }} {{ form.name.label( class="form-label" ) }} {{
+    form.name( class="form-control" ) }}
+    <br />
+    {{ form.username.label( class="form-label" ) }} {{ form.username(
+    class="form-control" ) }}
+    <br />
+    {{ form.email.label( class="form-label" ) }} {{ form.email(
+    class="form-control" ) }}
+    <br />
+    {{ form.fav_color.label( class="form-label" ) }} {{ form.fav_color(
+    class="form-control" ) }}
+    <br />
+    {{ form.passwd.label( class="form-label" ) }} {{ form.passwd(
+    class="form-control" ) }}
+    <br />
+    {{ form.passwd2.label( class="form-label" ) }} {{ form.passwd2(
+    class="form-control" ) }}
 
-            {{ form.name.label(
-                class="form-label"
-            ) }}
+    <br />
 
-            {{ form.name(
-                class="form-control"
-            ) }}
-            <br/>
-            {{ form.username.label(
-                class="form-label"
-            ) }}
+    {{ form.submit( class="btn btn-secondary") }}
+  </form>
+</div>
+<br />
 
-            {{ form.username(
-                class="form-control"
-            ) }}
-            <br/>
-            {{ form.email.label(
-                class="form-label"
-            ) }}
-            
-            {{ form.email(
-                class="form-control"
-            ) }}
-            <br/>
-            {{ form.fav_color.label(
-                class="form-label"
-            ) }}
+<table class="table table-hover table-bordered table-striped">
+  {% for user in our_users %}
+  <tr>
+    <td>
+      {{ user.id }}<a href="{{ url_for('update', id=user.id) }}">
+        : {{ user.name }}
+      </a>
+      - {{ user.username }} - {{ user.email}} - {{ user.fav_color }} - PW: {{
+      user.passwd }} - <a href="{{ url_for('delete', id=user.id) }}">Delete</a>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
 
-            {{ form.fav_color(
-                class="form-control"
-            ) }}
-            <br/>
-            {{ form.passwd.label(
-                class="form-label"
-            ) }}
+<br />
 
-            {{ form.passwd(
-                class="form-control"
-            ) }}
-            <br/>
-            {{ form.passwd2.label(
-                class="form-label"
-            ) }}
-
-            {{ form.passwd2(
-                class="form-control"
-            ) }}
-
-        <br/>
-
-        {{ form.submit(
-            class="btn btn-secondary") }}
-    </form>
-    </div>
-    <br>
-
-
-        <table class="table table-hover table-bordered table-striped">
-            {% for user in our_users %}
-                <tr>    
-                <td>{{ user.id }}<a href="{{ url_for('update', id=user.id) }}"> : {{ user.name }} </a> - {{ user.username }} - {{ user.email}} - {{ user.fav_color }} - 
-                    PW: {{ user.passwd }} - <a href="{{ url_for('delete', id=user.id) }}">Delete</a> </td>
-                </tr>
-            {% endfor %}
-        </table>
-
-    <br>
-
-{% endif%}
-
-{% endblock %}
+{% endif%} {% endblock %}
