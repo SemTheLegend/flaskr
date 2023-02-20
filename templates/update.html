@@ -57,7 +57,16 @@
                 class="form-control", value=name_to_update.fav_color
             ) }}
 
-        <br/>
+            <br/>
+
+            {{ form.about_author.label(
+            class="form-label"
+            ) }}
+            
+            <textarea name="about_author" class="form-control">{{ name_to_update.about_author }}
+            </textarea>
+
+            <br/>
 
         {{ form.submit(
             class="btn btn-secondary btn-sm"

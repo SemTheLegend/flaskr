@@ -1,5 +1,8 @@
 from flask import Flask, render_template, flash, request, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
+import uuid as uuid
+import os
 
 # DataBase imports
 from flask_sqlalchemy import SQLAlchemy
@@ -27,6 +30,9 @@ app.config['SQLACHEMY_TRCAK_MODIFICATIONS'] = True
 # Secret Key!
 app.config['SECRET_KEY'] = "Master of Mystic Arts"
 
+
+UPLOAD_FOLDER = 'static/images'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 # Initialize THe Database
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
@@ -50,8 +56,10 @@ class Users(db.Model, UserMixin):
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100))
     fav_color = db.Column(db.String(40))
+    about_author = db.Column(db.Text(500), nullable=True)
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
     passwd = db.Column(db.String(126), nullable=False)
+    profile_pic = db.Column(db.String(), nullable=True)
 
     # User Can Have Many Posts
     posts = db.relationship('Posts', backref='poster')
@@ -90,14 +98,14 @@ class Posts(db.Model):
 @login_required
 def admin():
     id = current_user.id
-    
+
     if id == 1:
         return render_template('admin.html')
     else:
         flash("Sorry you must be the Admin to access this page")
         return redirect(url_for('dashboard'))
-        
-        
+
+
 # Create a route decorator
 @app.route('/')
 @login_required
@@ -156,7 +164,7 @@ def search():
     if form.validate_on_submit():
         # Get data from submitted form
         post.searched = form.searched.data
-        
+
         # Query the Database
         posts = posts.filter(Posts.content.like('%' + post.searched + '%'))
         posts = posts.order_by(Posts.title).all()
@@ -197,18 +205,38 @@ def dashboard():
         name_to_update.email = request.form['email']
         name_to_update.fav_color = request.form['fav_color']
         name_to_update.username = request.form['username']
+        name_to_update.about_author = request.form['about_author']
+       
+        # Check for profile pic
+        if request.files['profile_pic']:
+            name_to_update.profile_pic = request.files['profile_pic']
+            
+            # Grab Image Name
+            pic_filename = secure_filename(name_to_update.profile_pic.filename)
+            # Set UID
+            pic_name = str(uuid.uuid1()) + "_" + pic_filename
+            # Save The Image
+            saver = request.files['profile_pic']
+            
+            #Change it to a String to save to db
+            name_to_update.profile_pic = pic_name
+            
+            try:
+                db.session.commit()
+                saver.save(os.path.join(
+                    app.config['UPLOAD_FOLDER'], pic_name))
+                flash("User Updated Successfully")
+                return render_template('dashboard.html', form=form, name_to_update=name_to_update)
 
-        try:
+            except:
+                flash("Error! Encountered a problem...Try Again")
+                return render_template('dashboard.html', form=form, name_to_update=name_to_update)
+        
+        else:
             db.session.commit()
             flash("User Updated Successfully")
-
             return render_template('dashboard.html', form=form, name_to_update=name_to_update)
-
-        except:
-            flash("Error! Encountered a problem...Try Again")
-
-            return render_template('dashboar.html', form=form, name_to_update=name_to_update)
-
+         
     else:
         return render_template('dashboard.html', form=form, name_to_update=name_to_update, id=id)
 
@@ -221,9 +249,8 @@ def logout():
     flash("You Have Been Logged Out!")
     return redirect(url_for('login'))
 
+
 # Users Functions
-
-
 @app.route('/user/add', methods=['GET', 'POST'])
 def add_user():
     name = None
@@ -295,6 +322,7 @@ def update(id):
         name_to_update.email = request.form['email']
         name_to_update.fav_color = request.form['fav_color']
         name_to_update.username = request.form['username']
+        name_to_update.about_author = request.form['about_author']
 
         try:
             db.session.commit()
@@ -312,22 +340,26 @@ def update(id):
 
 
 @app.route('/delete/<int:id>')
+@login_required
 def delete(id):
-    user_to_delete = Users.query.get_or_404(id)
-    name = None
-    form = UserForm()
+    if id == current_user.id:
+        user_to_delete = Users.query.get_or_404(id)
+        name = None
+        form = UserForm()
 
-    try:
-        db.session.delete(user_to_delete)
-        db.session.commit()
-        flash("User Deleted Succesfully!")
-        our_users = Users.query.order_by(Users.date_added)
-        return render_template('add_user.html', form=form, name=name, our_users=our_users)
+        try:
+            db.session.delete(user_to_delete)
+            db.session.commit()
+            flash("User Deleted Succesfully!")
+            our_users = Users.query.order_by(Users.date_added)
+            return render_template('add_user.html', form=form, name=name, our_users=our_users)
 
-    except:
-        flash("Whoops! Encountered a problem deleting the user")
-        return render_template('add_user.html', form=form, name=name, our_users=our_users)
-
+        except:
+            flash("Whoops! Encountered a problem deleting the user")
+            return render_template('add_user.html', form=form, name=name, our_users=our_users)
+    else:
+        flash("Requires authorization!! You are not an Admin..")
+        return redirect(url_for('dashboard'))
 
 # Add Post Page
 @app.route('/add_post', methods=['GET', 'POST'])
@@ -393,7 +425,7 @@ def edit_post(id):
 
         return redirect(url_for('post', id=post.id))
 
-    if current_user.id == post.post_id:
+    if current_user.id == post.post_id or current_user.id == 1:
 
         form.title.data = post.title
         form.slug.data = post.slug
@@ -412,7 +444,7 @@ def delete_post(id):
     post_to_delete = Posts.query.get_or_404(id)
     id = current_user.id
 
-    if id == post_to_delete.poster.id:
+    if id == post_to_delete.poster.id or id == 1:
         try:
             db.session.delete(post_to_delete)
             db.session.commit()
